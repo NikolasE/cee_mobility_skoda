@@ -18,7 +18,8 @@ def beep(duration=0.2, freq=800):
 
 class ArduinoInterface:
     def __init__(self):
-        self.ser = serial.Serial('/dev/ttyUSB0', 115200)
+        car_arduino = '/dev/serial/by-id/usb-Adafruit_Adafruit_Feather_M0_245098A9504B5957372E314AFF02291C-if00'
+        self.ser = serial.Serial(car_arduino, 115200)
         self._min_cmd = 800
         self._max_cmd = 2200
 
@@ -37,7 +38,7 @@ class Logic():
         self.yaw = None
         self.invalid_start = None
 
-        self.center_yaw = 0  # 20  # compensates for camera not central in front of user
+        self.center_yaw = 10  # 20  # compensates for camera not central in front of user
 
         self.yaw_threshold = 20  # relative to center_yaw
         self.yaw_threshold_left_look = -25  # relative to center_yaw
@@ -58,8 +59,9 @@ class Logic():
     def sub_yaw(self, msg):
         # return
         assert isinstance(msg, Float32)
-        rospy.loginfo("new yaw:  %.2f" % msg.data)
         self.yaw = msg.data - self.center_yaw
+        # rospy.loginfo("new yaw:  %.2f" % self.yaw)
+
         if self.yaw_control:
             self.motor.move_to(self.yaw_to_mus(int(self.yaw)))
 
@@ -101,10 +103,27 @@ class Logic():
         assert isinstance(msg, Marker)
         assert len(msg.points) == 2
         # rospy.loginfo("got marker")
-        y = (msg.points[0].y +  msg.points[1].y)/2.0
-        print(y)
-        if not self.yaw_control:
-            self.motor.move_to(self.row_to_mus(y))
+
+        z = (msg.points[0].z + msg.points[1].z)/2.0
+
+        if z > 800:
+            print("long")
+            self.motor.ser.write("l")
+            rospy.sleep(1)
+            self.motor.ser.write("X")
+
+        if z < 500:
+            print("short")
+            self.motor.ser.write("r")
+            rospy.sleep(1)
+            self.motor.ser.write("X")
+
+
+
+        # y = (msg.points[0].y + msg.points[1].y)/2.0
+        # print(y)
+        # if not self.yaw_control:
+        #     self.motor.move_to(self.row_to_mus(y))
 
 
 if __name__ == '__main__':

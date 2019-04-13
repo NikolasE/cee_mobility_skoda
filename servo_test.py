@@ -12,7 +12,7 @@ ser = serial.Serial('/dev/ttyUSB0', 115200)  # open serial port
 #     time.sleep(1)
 
 step = 10
-pos = 800
+pos = 1400
 
 while True:
     print("Reading a char:")
@@ -29,7 +29,7 @@ while True:
     if h == 'D':
         step = max(5, step - 1)
 
-    pos = min(2200, max(800, pos))
+    pos = min(2400, max(800, pos))
 
     print("pos: %i, step: %i" % (pos, step))
     ser.write('%i\n' % pos)
