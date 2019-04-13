@@ -17,8 +17,7 @@ pos = 800
 while True:
     print("Reading a char:")
     h = readchar.readchar()
-    # print(len(h))
-    # print(h)
+
     if h == 'q':
         break
     if h == 'A':
