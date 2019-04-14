@@ -1,0 +1,37 @@
+Bilder:
+ - IR Gesicht mit Punkten
+ - Evolution der Halterung (Wir haben sie hier gebaut!)
+ - Durchgebrannte Sicherungen
+ - Laurenz im Auto (gut sichtbare Elektronik), beim Loeten
+ - Nahaufnahme Spiegel mit Motor (?)
+
+-> Peek zum Aufnehmen!
+
+
+Autonomyrror
+
+
+Automatic
+Mirror
+Safe
+Reflection
+
+
+
+
+Videos:
+ - Vor und zuerueck, beide Spiegel bewegen sich
+ - Kniebeugen (?), Bild-in-Bild
+
+
+Use-cases:
+ - Blick ueber Schulter (Flottenmanagment -> DoDo)
+ - Blick auf Infotainmemt
+
+Shell / Bushaltestelle:
+ - Kniebeugen
+
+City:
+ - gefaehrliche Orte (Ablenkung?), Toter winkel -> Gefahr fuer Fahraeder
+
+

@@ -4,7 +4,9 @@ import serial
 import time
 import readchar
 
-ser = serial.Serial('/dev/ttyUSB0', 115200)  # open serial port
+
+dev = "/dev/serial/by-id/usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_014A1259-if00-port0"
+ser = serial.Serial(dev, 115200)  # open serial port
 
 # for pos in range(800, 2200, 100):
 #     print(pos)
@@ -12,7 +14,7 @@ ser = serial.Serial('/dev/ttyUSB0', 115200)  # open serial port
 #     time.sleep(1)
 
 step = 10
-pos = 1400
+pos = 900
 
 while True:
     print("Reading a char:")

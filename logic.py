@@ -42,11 +42,19 @@ class ExternalMirror:
 
     def run_homing(self):
         rospy.loginfo("Homing horizontal")
-        self.move_rel_horizontal(-6, force=True)
+
+        self.move_rel_horizontal(-2, force=True)
+        self.move_rel_horizontal(-2, force=True)
+        self.move_rel_horizontal(-2, force=True)
+
         self.horizontal = 0
 
         rospy.loginfo("Homing vertical")
-        self.move_rel_vertical(-6, force=True)
+        self.move_rel_vertical(-2, force=True)
+        # self.move_rel_vertical(-2, force=True)
+        # self.move_rel_vertical(-2, force=True)
+
+
         self.vertical = 0
         self.save_position()
 
@@ -54,6 +62,7 @@ class ExternalMirror:
         self.ser.write('X')
 
     def move_abs_horizontal(self, new_pos):
+        # print("newpos: ")
         dt = new_pos - self.horizontal
         return self.move_rel_horizontal(dt)
 
@@ -97,7 +106,7 @@ class ExternalMirror:
         spl = f.readline().split(',')
         assert len(spl) == 2
         print(spl)
-        self.vertical, self.horizontal = map(int, spl)
+        self.vertical, self.horizontal = map(float, spl)
 
     def save_position(self):
         f = open(self.filename, 'w')
@@ -106,7 +115,7 @@ class ExternalMirror:
 
 class InternalMirror:
     def __init__(self):
-        servo_arduino = '/dev/serial/by-id/'
+        servo_arduino = '/dev/serial/by-id/usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_014A1259-if00-port0'
         self.ser = serial.Serial(servo_arduino, 115200)
         self._min_cmd = 800
         self._max_cmd = 2200
@@ -119,7 +128,7 @@ class InternalMirror:
         rospy.sleep(sleep_ms/1000.0)
 
 
-class Logic():
+class Logic:
     def __init__(self):
         self.sub_yaw = rospy.Subscriber('/yaw', Float32, self.sub_yaw, queue_size=1)
         self.sub_points = rospy.Subscriber('/eyes', Marker, self.sub_eyes, queue_size=1)
@@ -133,7 +142,7 @@ class Logic():
         self.last_left_view = None
 
         self.use_external_mirror = True
-        self.use_internal_mirror = True
+        self.use_internal_mirror = False
 
         if self.use_external_mirror:
             self.external_mirror = ExternalMirror()
@@ -146,8 +155,8 @@ class Logic():
 
         self.use_sound_interface = False
 
-        self.yaw_to_mus = interp1d([35, -35], [self.internal_mirror._min_cmd, self.internal_mirror._max_cmd])
-        self.row_to_mus = interp1d([0, 480], [self.internal_mirror._max_cmd, self.internal_mirror._min_cmd])
+        # self.yaw_to_mus = interp1d([35, -35], [self.internal_mirror._min_cmd, self.internal_mirror._max_cmd])
+        # self.row_to_mus = interp1d([0, 480], [self.internal_mirror._max_cmd, self.internal_mirror._min_cmd])
 
         self.engine = pyttsx.init()
         self.engine.say("a")
@@ -180,7 +189,7 @@ class Logic():
                 return
 
             dt = (now - self.invalid_start).to_sec()
-            rospy.logwarn("%f" % dt)
+            # rospy.logwarn("%f" % dt)
             if dt > 5 and self.use_sound_interface:
                 if not self.engine.isBusy():
                     self.engine.say("Look back, you idiot!")
@@ -193,7 +202,6 @@ class Logic():
             if self.invalid_start is not None:
                 pass
             self.invalid_start = None
-
 
     def process_eye_row(self, row):
         return
@@ -211,33 +219,46 @@ class Logic():
         z = (msg.points[0].z + msg.points[1].z)/2.0
         assert z > 0
 
-        if self.last_z_cmd is None:
-            rospy.loginfo("Got first eye-message")
+        if self.use_external_mirror:
+            if self.last_z_cmd is None:
+                rospy.loginfo("Got first eye-message")
+                self.last_z_cmd = z
+                return
+
+            dz = abs(z - self.last_z_cmd)
+
+            if dz < 20:
+                rospy.loginfo("small movement (%i mm after last move)" % dz)
+                # self.last_z_cmd = z
+                return
+
             self.last_z_cmd = z
-            return
 
-        dz = abs(z - self.last_z_cmd)
-
-        if dz < 100:
-            rospy.loginfo("small movement (%i mm after last move)" % dz)
-            self.last_z_cmd = z
-            return
-
-        self.last_z_cmd = z
+        print("drive")
 
         # distance in mm!
         min_z = 400
-        max_z = 800
+        max_z = 700
 
         if self.use_external_mirror:
-            mm2cmd = interp1d([min_z, max_z], [5.0, 3.0])
+            mm2cmd = interp1d([min_z, max_z], [2.5, 1.5], fill_value='extrapolate')
             cmd = mm2cmd(z)
             rospy.loginfo("Z=%i, moving to %.1f" % (z, cmd))
             self.external_mirror.move_abs_horizontal(cmd)
 
+
+        # 350, 1200
+        # 260, 1420
         if self.use_internal_mirror:
-            mm2rot = interp1d([min_z, max_z], [1400, 800])
-            cmd = mm2rot(z)
+            try:
+                # px2rot = interp1d([290, 340], [1300, 1240], fill_value='extrapolate')
+                px2rot = interp1d([300, 340], [1290, 1230], fill_value='extrapolate')
+            except ValueError:
+                return
+
+            cmd = px2rot(y)
+            print("%i %i" % (y, cmd))
+
             self.internal_mirror.move_to(cmd)
 
 
@@ -247,4 +268,6 @@ if __name__ == '__main__':
     rospy.spin()
 
     # em = ExternalMirror()
+    # em
+    # em.move_abs_vertical(0.9)
     # em.test()
