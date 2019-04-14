@@ -141,8 +141,8 @@ class Logic:
         self.yaw_threshold_left_look = -25  # relative to center_yaw
         self.last_left_view = None
 
-        self.use_external_mirror = True
-        self.use_internal_mirror = False
+        self.use_external_mirror = False
+        self.use_internal_mirror = True
 
         if self.use_external_mirror:
             self.external_mirror = ExternalMirror()
@@ -217,7 +217,7 @@ class Logic:
         self.process_eye_row(y)
 
         z = (msg.points[0].z + msg.points[1].z)/2.0
-        assert z > 0
+        # assert z > 0
 
         if self.use_external_mirror:
             if self.last_z_cmd is None:
@@ -252,7 +252,9 @@ class Logic:
         if self.use_internal_mirror:
             try:
                 # px2rot = interp1d([290, 340], [1300, 1240], fill_value='extrapolate')
-                px2rot = interp1d([300, 340], [1290, 1230], fill_value='extrapolate')
+                # px2rot = interp1d([300, 340], [1290, 1230], fill_value='extrapolate')
+                px2rot = interp1d([0, 480], [800, 1300], fill_value='extrapolate')
+
             except ValueError:
                 return
 
@@ -266,8 +268,3 @@ if __name__ == '__main__':
     rospy.init_node("logic")
     l = Logic()
     rospy.spin()
-
-    # em = ExternalMirror()
-    # em
-    # em.move_abs_vertical(0.9)
-    # em.test()
