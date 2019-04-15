@@ -253,7 +253,7 @@ class Logic:
             try:
                 # px2rot = interp1d([290, 340], [1300, 1240], fill_value='extrapolate')
                 # px2rot = interp1d([300, 340], [1290, 1230], fill_value='extrapolate')
-                px2rot = interp1d([0, 480], [800, 1300], fill_value='extrapolate')
+                px2rot = interp1d([0, 480], [800, 2000], fill_value='extrapolate')
 
             except ValueError:
                 return
